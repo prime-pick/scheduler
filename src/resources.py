@@ -10,8 +10,10 @@ from timeit import default_timer as timer
 MANIPULATOR_COLD = ["COLD_HAND"]
 MANIPULATOR_WARM = ["WARM_HAND"]
 AIRLOCK = ["TZ 1", "TZ 2"]  # Aka transition zone
+OVEN4 = ["OVEN 1", "OVEN 2", "OVEN 3", "OVEN 4"]
 OVEN3 = ["OVEN 1", "OVEN 2", "OVEN 3"]
 OVEN2 = ["OVEN 1", "OVEN 2"]
+OVEN1 = ["OVEN 1"]
 DISPENSER = ["DISP 1", "DISP 2"]
 WARM_ROOM_15 = [f"WR {x}" for x in range(15)]
 WARM_ROOM_30 = [f"WR {x}" for x in range(33)]
@@ -69,6 +71,13 @@ class Resource:
         self.tasks.append(task)
         self._sort_tasks()
 
+    def get_total_time(self):
+        for task in reversed(self.tasks):
+            if task.type != OPERATION_TYPE["PICKUP"]:
+                return task.end
+
+        return 0
+
     def _sort_tasks(self):
         self.tasks.sort(key=lambda x: x.start)
 
@@ -118,7 +127,7 @@ class Resource:
 
             # check priority
             # FIXME: hack to prevent load-unload anomaly
-            if pair[1].priority < priority and pair[0].priority != priority:
+            if pair[1].priority < priority and pair[0].priority != priority and pair[1].priority != priority:
                 return possibly_start, possibly_start - pair[0].end
 
         return None
@@ -192,18 +201,16 @@ class OvenResource(Resource):
         extra = self.extra_duration
 
         for pair in pairs:
-            extra0 = pair[0].next_task.duration if pair[0].next_task else 0
-            end0 = pair[0].end + extra0
+            end0 = pair[0].end + self.extra_duration
 
             if pair[1] is None:
                 start_time = max(end0 + extra, start_time)
                 return start_time, start_time - end0
 
-            extra1 = pair[1].prev_task.duration if pair[1].prev_task else 0
-            start1 = pair[1].start - extra1
+            start1 = pair[1].start - self.extra_duration
 
             if end0 >= start_time - extra:
-                if start1 - end0 >= duration + 2 * self.extra_duration:
+                if start1 - end0 >= duration + extra:
                     return end0 + extra, 0
 
             if end0 < (start_time - extra) < start1:

@@ -53,7 +53,8 @@ def generate_order_distribution(bus_time, cook_time_base, cook_time_scale, cook_
 
     return result
 
-def generate_orders(count, cook_time_base, cook_time_scale, cook_min_time, cook_max_time, cook_extra_time, pickup_max_time):
+
+def generate_orders(count, cook_time_base, cook_time_scale, cook_min_time, cook_max_time, pickup_max_time):
     cook_times = generate_cook_times(count, cook_time_base, cook_time_scale, cook_min_time, cook_max_time)
     pickup_timeouts = generate_pickup_timeouts(count, pickup_max_time)
     return [

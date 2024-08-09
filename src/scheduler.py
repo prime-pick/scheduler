@@ -9,9 +9,11 @@ class Scheduler:
     def __init__(self, resources: Dict[str, Resource]):
         self.resources = resources
 
-    def print_resource_utilization(self, count):
-        ends = [r.tasks[-1].end if r.tasks else 0 for r in self.resources.values()]
+    def print_resource_utilization(self, count, pickup_emulation_time):
+        ends = [r.get_total_time() for r in self.resources.values()]
         total_time = max(ends)
+        if pickup_emulation_time is not None:
+            total_time += pickup_emulation_time * count / 2
 
         print(f"Total time: {timedelta(seconds=total_time)} ({total_time} sec)")
         products_in_day = 86400 / total_time * count

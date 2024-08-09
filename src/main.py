@@ -2,8 +2,8 @@ from datetime import timedelta
 from timeit import default_timer as timer
 from itertools import cycle
 
-from resources import OPERATION_TYPE, MANIPULATOR_COLD, MANIPULATOR_WARM, OVEN2, OVEN3, WARM_ROOM_15, WARM_ROOM_30, \
-    Resource, OvenResource
+from resources import OPERATION_TYPE, MANIPULATOR_COLD, MANIPULATOR_WARM, OVEN1, OVEN2, OVEN3, OVEN4, WARM_ROOM_15, \
+    WARM_ROOM_30, Resource, OvenResource
 from scheduler import Scheduler
 from plot_schedule import plot_schedule
 from data_generator import generate_order_distribution, init_seed, generate_orders
@@ -62,7 +62,8 @@ def generate_pickup_sequence():
         {
             "resource": MANIPULATOR_WARM,
             "type": OPERATION_TYPE["PICKUP"],
-            "duration": 30
+            "duration": 30,
+            "priority": 5
         },
     ]
 
@@ -72,21 +73,20 @@ init_seed(123)
 COUNT = 100
 
 COOK_TIME_BASE = 7 * 60
-COOK_TIME_SCALE = 0
-COOK_MIN_TIME = 6.5 * 60
-COOK_MAX_TIME = 7.5 * 60
-COOK_EXTRA_TIME = 30 * 3
-PICKUP_MAX_TIME = 50 * 60
-
+COOK_TIME_SCALE = 0#0.5 * 60
+COOK_MIN_TIME = 6 * 60
+COOK_MAX_TIME = 8 * 60
+# COOK_EXTRA_TIME = 30 * 3
+PICKUP_MAX_TIME = 10 * 60
+OVEN = OVEN2
 
 order_distribution = generate_orders(count=COUNT, cook_time_base=COOK_TIME_BASE, cook_time_scale=COOK_TIME_SCALE,
                                      cook_min_time=COOK_MIN_TIME, cook_max_time=COOK_MAX_TIME,
-                                     cook_extra_time=COOK_EXTRA_TIME, pickup_max_time=PICKUP_MAX_TIME)
+                                     pickup_max_time=PICKUP_MAX_TIME)
 
-
-bus_time = [
-    1, 0, 0, 0, 0, 0, 0, 0, 6, 13, 11, 8, 16, 14, 9, 6, 6, 7, 13, 15, 12, 8, 6, 0
-]
+# bus_time = [
+#     1, 0, 0, 0, 0, 0, 0, 0, 6, 13, 11, 8, 16, 14, 9, 6, 6, 7, 13, 15, 12, 8, 6, 0
+# ]
 # bus_time = [
 #     21
 # ]
@@ -96,7 +96,6 @@ bus_time = [
 #                                                  cook_extra_time=COOK_EXTRA_TIME, pickup_max_time=PICKUP_MAX_TIME)
 
 # Resources
-OVEN = OVEN3
 resources = {}
 for r in MANIPULATOR_COLD + MANIPULATOR_WARM + OVEN:
     resources[r] = Resource(r) if r not in OVEN else OvenResource(r, 30)
@@ -131,7 +130,7 @@ print(f"Ovens: {len(OVEN)}")
 print(f"Oven time: {COOK_TIME_BASE}")
 print(f"Orders: {len(order_distribution)}")
 
-scheduler.print_resource_utilization(len(order_distribution))
+scheduler.print_resource_utilization(len(order_distribution), 30)
 
 # Print shifted orders
 diffs = []
